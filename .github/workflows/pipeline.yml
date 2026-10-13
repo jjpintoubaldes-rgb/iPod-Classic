@@ -1,0 +1,35 @@
+
+name: Pipeline Docker iPod Classic
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  docker-job:
+    name: Construir y ejecutar iPod Classic
+    runs-on: self-hosted
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Mostrar fecha
+        run: date
+
+      - name: Verificar Docker
+        run: docker --version
+
+      - name: Construir imagen Docker
+        run: docker build -t ipod-classic .
+
+      - name: Ejecutar contenedor
+        run: |
+          docker rm -f ipod-pipeline 2>/dev/null || true
+          docker run -d --name ipod-pipeline -p 8086:80 ipod-classic
+
+      - name: Verificar funcionamiento
+        run: |
+          docker ps --filter name=ipod-pipeline
+          curl --fail --retry 5 --retry-delay 2 http://localhost:8086
